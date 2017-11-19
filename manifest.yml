@@ -1,26 +1,26 @@
 ---
 declared-services:
-  wbc-conversation-service:
+  Conversation-ve:
     label: conversation
     plan: free
-  wbc-discovery-service:
+  Discovery-hv:
     label: discovery
     plan: lite
-  wbc-natural-language-understanding-service:
+  Natural Language Understanding-pn:
     label: natural-language-understanding
     plan: free
-  wbc-tone-analyzer-service:
+  Tone Analyzer-6b:
     label: tone_analyzer
     plan: lite
 applications:
 - path: .
   memory: 256M
   instances: 1
-  name: watson-banking-chatbot
+  name: chatbot-Jupiter
   disk_quota: 256M
   random-route: false
   services:
-  - wbc-conversation-service
-  - wbc-tone-analyzer-service
-  - wbc-natural-language-understanding-service
-  - wbc-discovery-service
+  - Conversation-ve
+  - Tone Analyzer-6b
+  - Natural Language Understanding-pn
+  - Discovery-hv

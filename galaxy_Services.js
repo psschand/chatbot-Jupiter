@@ -55,7 +55,22 @@ const galaxy_Services = {
     "Hexvalue": "#000000",
     "Icon": "Colour",
     customer_id: 7829706,
-    tone_anger_threshold: 0.7
+    A: 0,
+    B: 0,
+    C: 1,
+    D: 1,
+    I:1,
+    J:1,
+    n:1,
+    Temp1:"",
+    Temp2:"",
+    Temp3:"",
+    Temp4:"",
+    Name:"",
+    Address:"",
+    Phone:436765876980,
+    Email:"",
+    Feedback:""
   },
 
   getPhone: function(customerId, callback) {

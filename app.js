@@ -28,15 +28,19 @@ const WatsonConversationSetup = require('./lib/watson-conversation-setup');
 const DEFAULT_NAME = 'chatbot-Jupiter';
 const DISCOVERY_ACTION = 'rnr'; // Replaced RnR w/ Discovery but Conversation action is still 'rnr'.
 const DISCOVERY_DOCS = [
-  './data/discovery/docs/BankFaqRnR-DB-Failure-General.docx',
-  './data/discovery/docs/BankFaqRnR-DB-Terms-General.docx',
-  './data/discovery/docs/BankFaqRnR-e2eAO-Terms.docx',
-  './data/discovery/docs/BankFaqRnR-e2ePL-Terms.docx',
-  './data/discovery/docs/BankRnR-OMP-General.docx'
+  './data/discovery/docs/QA.docx',
+  './data/discovery/docs/QA2.docx',
+  './data/discovery/docs/S8_FAQ.pdf',
+  './data/discovery/docs/samsung service.docx',
+  './data/discovery/docs/Terms_and_Conditions.pdf',
+    './data/discovery/docs/Warranty.pdf',
+  './data/discovery/docs/SMART_T&C.pdf',
+  './data/discovery/docs/Spec.docx',
+  './data/discovery/docs/samsung.docx'
 ];
 
 const SPECIFICATION = 'spec';
-const SERVICE = 'service';
+const PASSAGE = 'passage';
 const OTHER = 'other';
 
 const app = express();
@@ -215,8 +219,10 @@ app.post('/api/message', function(req, res) {
             }
           }
         }
-
+  
+        payload.context['tone_anger_threshold'] = 0.7;
         payload.context['tone_anger_score'] = toneAngerScore;
+ 
 
         if (payload.input.text != '') {
           // console.log('input text payload = ', payload.input.text);
@@ -313,16 +319,62 @@ function checkForLookupRequests(data, callback) {
     };
 
     // conversation requests a data lookup action
-    if (data.context.action.lookup === LOOKUP_BALANCE) {
+    if (data.context.action.lookup === SPECIFICATION) {
       
     }
     
     
-     else if (data.context.action.lookup === LOOKUP_TRANSACTIONS) {
+     else if (data.context.action.lookup === PASSAGE) {
+
+         console.log('************** Discovery *************** InputText : ' + payload.input.text);
+      let discoveryResponse = '';
+      if (!discoveryParams) {
+        console.log('Discovery is not ready for query.');
+        discoveryResponse = 'Sorry, currently I do not have a response. Discovery initialization is in progress. Please try again later.';
+        if (data.output.text) {
+          data.output.text.push(discoveryResponse);
+        }
+        // Clear the context's action since the lookup and append was attempted.
+        data.context.action = {};
+        callback(null, data);
+        // Clear the context's action since the lookup was attempted.
+        payload.context.action = {};
+      } else {
+        const queryParams = {
+          natural_language_query: payload.input.text,
+          passages: true
+        };
+        Object.assign(queryParams, discoveryParams);
+        discovery.query(queryParams, (err, searchResponse) => {
+          discoveryResponse = 'Sorry, currently I do not have a response. Our Customer representative will get in touch with you shortly.';
+          if (err) {
+            console.error('Error searching for documents: ' + err);
+          } else if (searchResponse.passages.length > 0) {
+            const bestPassage = searchResponse.passages[0];
+            console.log('Passage score: ', bestPassage.passage_score);
+            console.log('Passage text: ', bestPassage.passage_text);
+
+            
+            discoveryResponse =
+              bestPassage.passage_text || 'Sorry I currently do not have an appropriate response for your query. Our customer care executive will call you in 24 hours.';
+          }
+
+          if (data.output.text) {
+            data.output.text.push(discoveryResponse);
+          }
+          // Clear the context's action since the lookup and append was completed.
+          data.context.action = {};
+          callback(null, data);
+          // Clear the context's action since the lookup was completed.
+          payload.context.action = {};
+        });
+      }
+
+
     } 
     
     
-    else if (data.context.action.lookup === LOOKUP_5TRANSACTIONS) {
+    else if (data.context.action.lookup === OTHER) {
       
     } 
     
@@ -330,9 +382,9 @@ function checkForLookupRequests(data, callback) {
     else if (data.context.action.lookup === 'branch') {
       console.log('************** Branch details *************** InputText : ' + payload.input.text);
       const loc = data.context.action.Location.toLowerCase();
-      bankingServices.getBranchInfo(loc, function(err, branchMaster) {
+      galaxy_Services.getBranchInfo(loc, function(err, branchMaster) {
         if (err) {
-          console.log('Error while calling bankingServices.getAccountInfo ', err);
+          console.log('Error while calling Services.getAccountInfo ', err);
           callback(err, null);
           return;
         }
@@ -344,7 +396,7 @@ function checkForLookupRequests(data, callback) {
         if (appendBranchResponse === true) {
           if (branchMaster != null) {
             branchText =
-              'Here are the branch details at ' +
+              'Here are the Location details at ' +
               branchMaster.location +
               ' <br/>Address: ' +
               branchMaster.address +
